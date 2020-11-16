@@ -1,21 +1,11 @@
-#include "Minner.h"
-
+template <class entity_type>
 class State
 {
     private:
         
     public:
-        State(/* args */);
         virtual ~State() {}
-        virtual void Enter(Minner*) = 0;
-        virtual void Execute(Minner*) = 0;
-        virtual void Exit(Minner*) = 0;
+        virtual void Enter(entity_type*) = 0;
+        virtual void Execute(entity_type*) = 0;
+        virtual void Exit(entity_type*) = 0;
 };
-
-State::State(/* args */)
-{
-}
-
-State::~State()
-{
-}
