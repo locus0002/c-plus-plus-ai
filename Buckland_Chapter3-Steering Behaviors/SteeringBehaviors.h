@@ -77,6 +77,7 @@ private:
     hide               = 0x04000,
     flock              = 0x08000,
     offset_pursuit     = 0x10000,
+    custom_offset_pursuit = 0x10000,
   };
 
 private:
@@ -95,6 +96,10 @@ private:
 
   //the current target
   Vector2D    m_vTarget;
+
+  //the current OffSetPoint
+  Vector2D    m_vOffsetPoint;
+  double      m_dOffsetDistance;
 
   //length of the 'detection box' utilized in obstacle avoidance
   double                 m_dDBoxLength;
@@ -216,6 +221,10 @@ private:
   //this behavior maintains a position, in the direction of offset
   //from the target vehicle
   Vector2D OffsetPursuit(const Vehicle* agent, const Vector2D offset);
+  
+  //this behavior maintains a position, in the direction of offset
+  //from the target vehicle
+  Vector2D CustomOffsetPursuit(const Vehicle* agent, const Vector2D offset);
 
   //this behavior attempts to evade a pursuer
   Vector2D Evade(const Vehicle* agent);
@@ -264,6 +273,10 @@ private:
                        END BEHAVIOR DECLARATIONS
 
       .......................................................*/
+
+  bool     ValidateOffsetPoint(const double& newDistance,
+                                const double& oldDistance,
+                                const Vector2D& followerPostion);
 
   //calculates and sums the steering forces from any active behaviors
   Vector2D CalculateWeightedSum();
@@ -314,6 +327,15 @@ public:
 
   void      SetOffset(const Vector2D offset){m_vOffset = offset;}
   Vector2D  GetOffset()const{return m_vOffset;}
+  //functions to handle the offsetpoint
+  Vector2D    OffsetPoint()const { return m_vOffsetPoint; }
+  void        SetOffsetPoint(Vector2D v) { m_vOffsetPoint = v; }
+  double      OffsetDistance()const { return m_dOffsetDistance; }
+  void        SetOffsetDistance(double distance) { m_dOffsetDistance = distance; }
+  //this function will help to order a group of vehicles depends on
+  //the distance to the leader
+  static void OrderFollowers(std::vector<Vehicle*>& followers, const Vehicle* leader, const Vector2D offset);
+  static void AddSortedVehicle(std::vector<Vehicle*>& buffer, Vehicle* currentVehicle);
 
   void      SetPath(std::list<Vector2D> new_path){m_pPath->Set(new_path);}
   void      CreateRandomPath(int num_waypoints, int mx, int my, int cx, int cy)const
@@ -342,6 +364,7 @@ public:
   void InterposeOn(Vehicle* v1, Vehicle* v2){m_iFlags |= interpose; m_pTargetAgent1 = v1; m_pTargetAgent2 = v2;}
   void HideOn(Vehicle* v){m_iFlags |= hide; m_pTargetAgent1 = v;}
   void OffsetPursuitOn(Vehicle* v1, const Vector2D offset){m_iFlags |= offset_pursuit; m_vOffset = offset; m_pTargetAgent1 = v1;}  
+  void CustomOffsetPursuitOn(Vehicle* v1, const Vector2D offset) { m_iFlags |= custom_offset_pursuit; m_vOffset = offset; m_pTargetAgent1 = v1; }
   void FlockingOn(){CohesionOn(); AlignmentOn(); SeparationOn(); WanderOn();}
 
   void FleeOff()  {if(On(flee))   m_iFlags ^=flee;}
@@ -359,6 +382,7 @@ public:
   void InterposeOff(){if(On(interpose)) m_iFlags ^=interpose;}
   void HideOff(){if(On(hide)) m_iFlags ^=hide;}
   void OffsetPursuitOff(){if(On(offset_pursuit)) m_iFlags ^=offset_pursuit;}
+  void CustomOffsetPursuitOff() { if (On(custom_offset_pursuit)) m_iFlags ^= custom_offset_pursuit; }
   void FlockingOff(){CohesionOff(); AlignmentOff(); SeparationOff(); WanderOff();}
 
   bool isFleeOn(){return On(flee);}
@@ -376,6 +400,7 @@ public:
   bool isInterposeOn(){return On(interpose);}
   bool isHideOn(){return On(hide);}
   bool isOffsetPursuitOn(){return On(offset_pursuit);}
+  bool isCustomOffsetPursuitOn() { return On(custom_offset_pursuit); }
 
   double DBoxLength()const{return m_dDBoxLength;}
   const std::vector<Vector2D>& GetFeelers()const{return m_Feelers;}

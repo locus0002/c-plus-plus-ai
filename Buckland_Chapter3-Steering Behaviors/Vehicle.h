@@ -46,6 +46,9 @@ private:
 
   //when true, smoothing is active
   bool                  m_bSmoothingOn;
+
+  //this flag identifies if the vehicle is a leader
+  bool                  m_bLeader;
   
 
   //keeps a track of the most recent update time. (some of the
@@ -92,10 +95,11 @@ public:
   Vector2D    SmoothedHeading()const{return m_vSmoothedHeading;}
 
   bool        isSmoothingOn()const{return m_bSmoothingOn;}
+  bool        isLeader()const { return m_bLeader; }
   void        SmoothingOn(){m_bSmoothingOn = true;}
   void        SmoothingOff(){m_bSmoothingOn = false;}
   void        ToggleSmoothing(){m_bSmoothingOn = !m_bSmoothingOn;}
-  
+  void        BecomeLeader() { m_bLeader = true; }
   double       TimeElapsed()const{return m_dTimeElapsed;}
  
 };

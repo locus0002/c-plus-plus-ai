@@ -31,7 +31,7 @@ GameWorld::GameWorld(int cx, int cy):
             m_bShowObstacles(true),
             m_bShowPath(false),
             m_bShowWanderCircle(false),
-            m_bShowVisionRangeCircle(true),
+            m_bShowVisionRangeCircle(false),
             m_bShowSteeringForce(false),
             m_bShowFeelers(false),
             m_bShowDetectionBox(false),
@@ -40,7 +40,8 @@ GameWorld::GameWorld(int cx, int cy):
             m_pPath(NULL),
             m_bRenderNeighbors(false),
             m_bViewKeys(true),
-            m_bShowCellSpaceInfo(false)
+            m_bShowCellSpaceInfo(false),
+            m_bShowOffsetPoint(false)
 {
 
   //setup the spatial subdivision class
@@ -68,8 +69,8 @@ GameWorld::GameWorld(int cx, int cy):
                                     Prm.MaxTurnRatePerSecond, //max turn rate
                                     Prm.VehicleScale);        //scale
 
-    pVehicle->Steering()->ObstacleAvoidanceOn();
     pVehicle->SmoothingOn();
+    pVehicle->Steering()->SeparationOn();
     m_Vehicles.push_back(pVehicle);
 
     //add it to the cell subdivision
@@ -80,20 +81,25 @@ GameWorld::GameWorld(int cx, int cy):
 #define SHOAL
 #ifdef SHOAL
   m_Vehicles[Prm.NumAgents-1]->Steering()->FlockingOff();
-  m_Vehicles[Prm.NumAgents-1]->SetScale(Vector2D(10, 10));
   m_Vehicles[Prm.NumAgents-1]->Steering()->WanderOn();
-  m_Vehicles[Prm.NumAgents-1]->SetMaxSpeed(70);
+  m_Vehicles[Prm.NumAgents - 1]->SetMaxSpeed(100);
 
-
-   for (int i=0; i<Prm.NumAgents-1; ++i)
+  SteeringBehavior::OrderFollowers(m_Vehicles, m_Vehicles[Prm.NumAgents - 1], Vector2D(-5, 0));
+  m_Vehicles[0]->Steering()->SetOffsetDistance(-1);
+  m_Vehicles[0]->Steering()->OffsetPursuitOn(m_Vehicles[Prm.NumAgents - 1], Vector2D(-5, 0));
+  int maxSpeed = 100;
+   for (int i=1; i<Prm.NumAgents-1; ++i)
   {
-    m_Vehicles[i]->Steering()->HideOn(m_Vehicles[Prm.NumAgents-1]);
+       maxSpeed += 5;
+       m_Vehicles[i]->Steering()->SetOffsetDistance(-1);
+       m_Vehicles[i]->SetMaxSpeed(maxSpeed);
+       m_Vehicles[i]->Steering()->OffsetPursuitOn(m_Vehicles[i - 1], Vector2D(-5, 0));
 
   }
 #endif
  
   //create any obstacles or walls
-  CreateObstacles();
+  //CreateObstacles();
   //CreateWalls();
 }
 

@@ -75,6 +75,7 @@ private:
   bool  m_bRenderNeighbors;
   bool  m_bViewKeys;
   bool  m_bShowCellSpaceInfo;
+  bool  m_bShowOffsetPoint;
 
 
   void CreateObstacles();
@@ -127,6 +128,7 @@ public:
   int   cyClient()const{return m_cyClient;}
  
   bool  RenderWalls()const{return m_bShowWalls;}
+  bool  RenderOffsetPoint()const { return m_bShowOffsetPoint; }
   bool  RenderObstacles()const{return m_bShowObstacles;}
   bool  RenderPath()const{return m_bShowPath;}
   bool  RenderDetectionBox()const{return m_bShowDetectionBox;}

@@ -329,6 +329,16 @@ Vector2D SteeringBehavior::CalculatePrioritized()
     if (!AccumulateForce(m_vSteeringForce, force)) return m_vSteeringForce;
   }
 
+  if (On(custom_offset_pursuit))
+  {
+      assert(m_pTargetAgent1 && "pursuit target not assigned");
+      assert(!m_vOffset.isZero() && "No offset assigned");
+
+      force = CustomOffsetPursuit(m_pTargetAgent1, m_vOffset);
+
+      if (!AccumulateForce(m_vSteeringForce, force)) return m_vSteeringForce;
+  }
+
   if (On(interpose))
   {
     assert (m_pTargetAgent1 && m_pTargetAgent2 && "Interpose agents not assigned");
@@ -458,6 +468,14 @@ Vector2D SteeringBehavior::CalculateWeightedSum()
     assert (!m_vOffset.isZero() && "No offset assigned");
 
     m_vSteeringForce += OffsetPursuit(m_pTargetAgent1, m_vOffset) * m_dWeightOffsetPursuit;
+  }
+
+  if (On(custom_offset_pursuit))
+  {
+      assert(m_pTargetAgent1 && "pursuit target not assigned");
+      assert(!m_vOffset.isZero() && "No offset assigned");
+
+      m_vSteeringForce += CustomOffsetPursuit(m_pTargetAgent1, m_vOffset) * m_dWeightOffsetPursuit;
   }
 
   if (On(interpose))
@@ -1060,14 +1078,14 @@ void SteeringBehavior::CreateFeelers()
 Vector2D SteeringBehavior::Separation(const vector<Vehicle*> &neighbors)
 {  
   Vector2D SteeringForce;
-
+  //TODO: Modify this function to exclude a targetAgent validation when the behavior is follow the leader
   for (unsigned int a=0; a<neighbors.size(); ++a)
   {
     //make sure this agent isn't included in the calculations and that
     //the agent being examined is close enough. ***also make sure it doesn't
     //include the evade target ***
-    if((neighbors[a] != m_pVehicle) && neighbors[a]->IsTagged() &&
-      (neighbors[a] != m_pTargetAgent1))
+      //if((neighbors[a] != m_pVehicle) && neighbors[a]->IsTagged() && (neighbors[a] != m_pTargetAgent1))
+    if((neighbors[a] != m_pVehicle) && neighbors[a]->IsTagged())
     {
       Vector2D ToAgent = m_pVehicle->Pos() - neighbors[a]->Pos();
 
@@ -1484,6 +1502,86 @@ Vector2D SteeringBehavior::FollowPath()
   }
 }
 
+//------------------------- Order Followers -------------------------------
+//
+//  Produces a steering force that keeps a vehicle at a specified offset
+//  from a leader vehicle in a file
+//------------------------------------------------------------------------
+void SteeringBehavior::OrderFollowers(std::vector<Vehicle*>& followers, const Vehicle* leader, const Vector2D offset)
+{
+    //calculate the offset's position in world space
+    Vector2D WorldOffsetPos = PointToWorldSpace(offset,
+        leader->Heading(),
+        leader->Side(),
+        leader->Pos());
+    std::vector<Vehicle*> buffer;
+    std::vector<Vehicle*>::const_iterator currentVehicle = followers.begin();
+    while (currentVehicle != followers.end())
+    {
+        if (leader->ID() != (*currentVehicle)->ID())
+        {
+            
+            (*currentVehicle)->Steering()->SetOffsetPoint(WorldOffsetPos - (*currentVehicle)->Pos());
+            (*currentVehicle)->Steering()->SetOffsetDistance((*currentVehicle)->Steering()->OffsetPoint().Length());
+            if (buffer.empty())
+            {
+                buffer.push_back((*currentVehicle));
+            }
+            else
+            {
+                AddSortedVehicle(buffer, *currentVehicle);
+            }
+        }
+        else
+        {
+            buffer.push_back(*currentVehicle);
+        }
+        currentVehicle++;
+    }
+    followers = buffer;
+}
+
+void SteeringBehavior::AddSortedVehicle(std::vector<Vehicle*>& buffer, Vehicle* currentVehicle) {
+    std::vector<Vehicle*>::const_iterator it = buffer.begin();
+    while (it != buffer.end())
+    {
+        if (currentVehicle->Steering()->OffsetDistance() > (*it)->Steering()->OffsetDistance()) 
+        {
+            if ((*it)->ID() == buffer.back()->ID()) {
+                buffer.push_back(currentVehicle);
+                break;
+            }
+        }
+        else {
+            buffer.insert(it, currentVehicle);
+            break;
+        }
+        it++;
+    }
+}
+
+//------------------------- Custom Offset Pursuit -------------------------------
+//
+//  Produces a steering force that keeps a vehicle at a specified offset
+//  from a leader vehicle
+//------------------------------------------------------------------------
+Vector2D SteeringBehavior::CustomOffsetPursuit(const Vehicle* leader,
+    const Vector2D offset)
+{
+    //the lookahead time is propotional to the distance between the leader
+    //and the pursuer; and is inversely proportional to the sum of both
+    //agent's velocities
+    // main formula v = d/t
+    // adjusting t = d/v
+    double LookAheadTime = m_pVehicle->Steering()->OffsetDistance() /
+        (m_pVehicle->MaxSpeed() + leader->Speed());
+
+    //now Arrive at the predicted future position of the offset
+    m_pVehicle->Steering()->SetOffsetPoint(m_pVehicle->Steering()->OffsetPoint() + leader->Velocity() * LookAheadTime);
+    //return Seek(m_pVehicle->World()->OffsetPoint());
+    return Arrive(m_pVehicle->Steering()->OffsetPoint(), fast);
+}
+
 //------------------------- Offset Pursuit -------------------------------
 //
 //  Produces a steering force that keeps a vehicle at a specified offset
@@ -1492,6 +1590,9 @@ Vector2D SteeringBehavior::FollowPath()
 Vector2D SteeringBehavior::OffsetPursuit(const Vehicle*  leader,
                                           const Vector2D offset)
 {
+    // TODO: simulate a correct follow the leader behavior it is necessary to handle 
+    // the world like a toroid and NO TO RESET the distance
+
   //calculate the offset's position in world space
   Vector2D WorldOffsetPos = PointToWorldSpace(offset,
                                                   leader->Heading(),
@@ -1499,20 +1600,57 @@ Vector2D SteeringBehavior::OffsetPursuit(const Vehicle*  leader,
                                                   leader->Pos());
 
   Vector2D ToOffset = WorldOffsetPos - m_pVehicle->Pos();
-
+  double newOffsetDistance = ToOffset.Length();
   //the lookahead time is propotional to the distance between the leader
   //and the pursuer; and is inversely proportional to the sum of both
   //agent's velocities
   // main formula v = d/t
   // adjusting t = d/v
-  double LookAheadTime = ToOffset.Length() / 
-                        (m_pVehicle->MaxSpeed() + leader->Speed());
+  if (m_pVehicle->Steering()->OffsetDistance() == -1 || ValidateOffsetPoint(newOffsetDistance, m_pVehicle->Steering()->OffsetDistance(), m_pVehicle->Pos()))
+  {
+      //the leader has not disappeared
+      m_pVehicle->Steering()->SetOffsetDistance(ToOffset.Length());
+      double LookAheadTime = m_pVehicle->Steering()->OffsetDistance() /
+          (m_pVehicle->MaxSpeed() + leader->Speed());
+
+      //now Arrive at the predicted future position of the offset
+      m_pVehicle->Steering()->SetOffsetPoint(WorldOffsetPos + leader->Velocity() * LookAheadTime);
+  }
   
-  //now Arrive at the predicted future position of the offset
-  return Arrive(WorldOffsetPos + leader->Velocity() * LookAheadTime, fast);
+  //return Seek(m_pVehicle->Steering()->OffsetPoint());
+  return Arrive(m_pVehicle->Steering()->OffsetPoint(), fast);
 }
 
-
+//------------------------- Offset Pursuit -------------------------------
+//
+//  Produces a steering force that keeps a vehicle at a specified offset
+//  from a leader vehicle
+//------------------------------------------------------------------------
+bool SteeringBehavior::ValidateOffsetPoint(const double& newDistance, const double& oldDistance, const Vector2D& followerPostion) {
+    double difference = abs(newDistance - oldDistance);
+    int limit = 90;
+    int MaxX = m_pVehicle->World()->cxClient();
+    int MaxY = m_pVehicle->World()->cyClient();
+    int xDistance2End = MaxX - followerPostion.x;
+    int yDistance2End = MaxY - followerPostion.y;
+    if (followerPostion.x < limit) {
+        //the vehicle is close to the start on X
+        return (difference < limit);
+    }
+    if (xDistance2End < limit) {
+        //the vehicle is close to the end on X
+        return (difference < limit);
+    }
+    if (followerPostion.y < limit) {
+        //the vehicle is close to the start on Y
+        return (difference < limit);
+    }
+    if (yDistance2End < limit) {
+        //the vehicle is close to the end on Y
+        return (difference < limit);
+    }
+    return true;
+}
 
 //for receiving keyboard input from user
 #define KEYDOWN(vk_code) ((GetAsyncKeyState(vk_code) & 0x8000) ? 1 : 0)
@@ -1584,6 +1722,14 @@ void SteeringBehavior::RenderAids( )
                                   m_pVehicle->Heading(),
                                   m_pVehicle->Side(),
                                   m_pVehicle->Pos()), 3);                                  
+  }
+
+  //render offset point
+  if (On(offset_pursuit) && m_pVehicle->World()->RenderOffsetPoint()) {
+      gdi->DarkGreenBrush();
+      gdi->DarkGreenPen();
+      gdi->Circle(m_pVehicle->Steering()->OffsetPoint(), 2.0);
+      gdi->TextAtPos(5, NextSlot, "Distance to Offset: "); gdi->TextAtPos(160, NextSlot, ttos(m_pVehicle->Steering()->OffsetDistance())); NextSlot += SlotSize;
   }
 
   //render the detection box if relevant
@@ -1683,7 +1829,7 @@ void SteeringBehavior::RenderAids( )
   }  
 
   //render path info
-  if (On(follow_path) && m_pVehicle->World()->RenderPath())
+  if (isOffsetPursuitOn() && m_pVehicle->World()->RenderPath())
   {
     m_pPath->Render();
   }
