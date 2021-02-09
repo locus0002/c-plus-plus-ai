@@ -15,7 +15,7 @@
 //
 //------------------------------------------------------------------------
 
-char* g_szApplicationName = "Steering Behaviors";
+char* g_szApplicationName = "Steering Behaviors Flock Sheeps";
 char*	g_szWindowClassName = "MyWindowClass";
 
 GameWorld* g_GameWorld;

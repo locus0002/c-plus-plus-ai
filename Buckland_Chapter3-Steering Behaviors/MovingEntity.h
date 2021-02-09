@@ -89,6 +89,9 @@ public:
   void      SetHeading(Vector2D new_heading);
   bool      RotateHeadingToFacePosition(Vector2D target);
 
+  // these functions will change the direction of the agent
+  void      TurnDirection(const int &direction);
+
   double     MaxTurnRate()const{return m_dMaxTurnRate;}
   void      SetMaxTurnRate(double val){m_dMaxTurnRate = val;}
 
@@ -149,6 +152,15 @@ inline void MovingEntity::SetHeading(Vector2D new_heading)
   m_vSide = m_vHeading.Perp();
 }
 
+//------------------------ Turns -------------------------
+// these function will change the direction of the vehicle
+//--------------------------------------------------------
+inline void MovingEntity::TurnDirection(const int& direction) {
+    C2DMatrix RotationMatrix;
+    RotationMatrix.Rotate(0.05 * direction);
+    RotationMatrix.TransformVector2Ds(m_vHeading);
+    RotationMatrix.TransformVector2Ds(m_vVelocity);
+}
 
 
 #endif

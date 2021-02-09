@@ -30,7 +30,14 @@ class Path;
 
 typedef std::vector<BaseGameEntity*>::iterator  ObIt;
 
-
+struct compare
+{
+    Vector2D newCenter;
+    compare(Vector2D const& auxCenter) : newCenter(auxCenter) {}
+    bool operator()(Vector2D const& auxCenter) {
+        return (auxCenter == newCenter);
+    }
+};
 class GameWorld
 { 
 private:
@@ -38,11 +45,18 @@ private:
   //a container of all the moving entities
   std::vector<Vehicle*>         m_Vehicles;
 
+  //a container of all the offsetpursuit
+  std::vector<Vector2D>         m_OffsetPoints;
+
   //any obstacles
   std::vector<BaseGameEntity*>  m_Obstacles;
 
   //container containing any walls in the environment
   std::vector<Wall2D>           m_Walls;
+
+  //a vertex buffer to contain the center of mass of the groups of sheeps
+  std::vector<Vector2D>         m_CentersOfMass;
+  int                           m_NumberGroup;
 
   CellSpacePartition<Vehicle*>* m_pCellSpace;
 
@@ -104,6 +118,7 @@ public:
 
   void  TagObstaclesWithinViewRange(BaseGameEntity* pVehicle, double range)
   {
+    if (m_NumberGroup > 100) { m_NumberGroup = 0; }
     TagNeighbors(pVehicle, m_Obstacles, range);
   }
 
@@ -111,6 +126,8 @@ public:
   CellSpacePartition<Vehicle*>*       CellSpace(){return m_pCellSpace;}
   const std::vector<BaseGameEntity*>& Obstacles()const{return m_Obstacles;}
   const std::vector<Vehicle*>&        Agents(){return m_Vehicles;}
+  //TODO: creates functions to handle the operation of the new offsetpoints
+  std::vector<Vector2D>*              OffsetPoints() { return &m_OffsetPoints; }
 
 
   //handle WM_COMMAND messages
@@ -126,6 +143,7 @@ public:
 
   int   cxClient()const{return m_cxClient;}
   int   cyClient()const{return m_cyClient;}
+  int   NumberGroup() { return m_NumberGroup++; }
  
   bool  RenderWalls()const{return m_bShowWalls;}
   bool  RenderOffsetPoint()const { return m_bShowOffsetPoint; }
@@ -146,6 +164,13 @@ public:
   void  ToggleViewKeys(){m_bViewKeys = !m_bViewKeys;}
   bool  ViewKeys()const{return m_bViewKeys;}
 
+  //method that will validate and add a new center of mass
+  void  AddCenterOfMass(const Vector2D& centerOfMass);
+  int   CenterOfMassSize()const { return m_CentersOfMass.size(); }
+  bool  IsCenteresOfMassEmpty()const { return m_CentersOfMass.empty(); }
+  std::vector<Vector2D>::const_iterator  CenteresOfMassBegin()const { return m_CentersOfMass.begin(); }
+  std::vector<Vector2D>::const_iterator  CenteresOfMassEnd()const { return m_CentersOfMass.end(); }
+  void  CenteresOfMassClear() { m_CentersOfMass.clear(); }
 };
 
 

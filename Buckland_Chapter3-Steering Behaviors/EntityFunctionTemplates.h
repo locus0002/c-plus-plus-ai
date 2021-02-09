@@ -45,27 +45,27 @@ template <class T, class conT>
 void TagNeighbors(const T& entity, conT& ContainerOfEntities, double radius)
 {
   //iterate through all entities checking for range
-  for (typename conT::iterator curEntity = ContainerOfEntities.begin();
-       curEntity != ContainerOfEntities.end();
-       ++curEntity)
-  {
-    //first clear any current tag
-    (*curEntity)->UnTag();
-    
-    Vector2D to = (*curEntity)->Pos() - entity->Pos();
-
-    //the bounding radius of the other is taken into account by adding it 
-    //to the range
-    double range = radius + (*curEntity)->BRadius();
-
-    //if entity within range, tag for further consideration. (working in
-    //distance-squared space to avoid sqrts)
-    if ( ((*curEntity) != entity) && (to.LengthSq() < range*range))
+    for (typename conT::iterator curEntity = ContainerOfEntities.begin();
+        curEntity != ContainerOfEntities.end();
+        ++curEntity)
     {
-      (*curEntity)->Tag();
-    }
+        //first clear any current tag
+        (*curEntity)->UnTag();
     
-  }//next entity
+        Vector2D to = (*curEntity)->Pos() - entity->Pos();
+
+        //the bounding radius of the other is taken into account by adding it 
+        //to the range
+        double range = radius + (*curEntity)->BRadius();
+
+        //if entity within range, tag for further consideration. (working in
+        //distance-squared space to avoid sqrts)
+        if ( ((*curEntity) != entity) && (to.LengthSq() < range*range))
+        {
+            (*curEntity)->Tag();
+        }
+    
+    }//next entity
 }
 
 

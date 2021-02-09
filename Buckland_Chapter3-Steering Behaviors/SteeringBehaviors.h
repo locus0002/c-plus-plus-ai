@@ -77,7 +77,8 @@ private:
     hide               = 0x04000,
     flock              = 0x08000,
     offset_pursuit     = 0x10000,
-    custom_offset_pursuit = 0x10000,
+    custom_offset_pursuit = 0x20000,
+    move_straight = 0x40000
   };
 
 private:
@@ -146,6 +147,7 @@ private:
   double        m_dWeightHide;
   double        m_dWeightEvade;
   double        m_dWeightFollowPath;
+  double        m_dWeightMoveStraight;
 
   //how far the agent can 'see'
   double        m_dViewDistance;
@@ -253,6 +255,9 @@ private:
   //method attempts to put an obstacle between itself and its opponent
   Vector2D Hide(const Vehicle* hunter, const std::vector<BaseGameEntity*>& obstacles);
 
+  //this behavoir makes the agent move straight ahead
+  Vector2D MoveStraight();
+
 
   // -- Group Behaviors -- //
 
@@ -261,6 +266,8 @@ private:
   Vector2D Separation(const std::vector<Vehicle*> &agents);
 
   Vector2D Alignment(const std::vector<Vehicle*> &agents);
+
+  void SeparationOffsetPoints(Vector2D newOffsetPoint);
 
   //the following three are the same as above but they use cell-space
   //partitioning to find the neighbors
@@ -293,6 +300,8 @@ private:
   bool     IsNotInFront(const Vector2D& posOb,
                         const Vehicle*  hunter);
   void     SetHidingDelimiters(const Vehicle* hunter);
+
+  const Vehicle*     IsThereAFugitive();
 
 
   
@@ -349,7 +358,9 @@ public:
   void      SetSummingMethod(summing_method sm){m_SummingMethod = sm;}
 
 
-  void FleeOn(){m_iFlags |= flee;}
+  // The FleeOn function was modified to set a TargetAgent and
+  // the result of Flee Behavior depends on TargetAgent's position
+  void FleeOn(Vehicle* v1) { m_iFlags |= flee; m_pTargetAgent1 = v1; }
   void SeekOn(){m_iFlags |= seek;}
   void ArriveOn(){m_iFlags |= arrive;}
   void WanderOn(){m_iFlags |= wander;}
@@ -366,6 +377,7 @@ public:
   void OffsetPursuitOn(Vehicle* v1, const Vector2D offset){m_iFlags |= offset_pursuit; m_vOffset = offset; m_pTargetAgent1 = v1;}  
   void CustomOffsetPursuitOn(Vehicle* v1, const Vector2D offset) { m_iFlags |= custom_offset_pursuit; m_vOffset = offset; m_pTargetAgent1 = v1; }
   void FlockingOn(){CohesionOn(); AlignmentOn(); SeparationOn(); WanderOn();}
+  void MoveStraightOn() { m_iFlags |= move_straight; }
 
   void FleeOff()  {if(On(flee))   m_iFlags ^=flee;}
   void SeekOff()  {if(On(seek))   m_iFlags ^=seek;}
@@ -384,6 +396,7 @@ public:
   void OffsetPursuitOff(){if(On(offset_pursuit)) m_iFlags ^=offset_pursuit;}
   void CustomOffsetPursuitOff() { if (On(custom_offset_pursuit)) m_iFlags ^= custom_offset_pursuit; }
   void FlockingOff(){CohesionOff(); AlignmentOff(); SeparationOff(); WanderOff();}
+  void MoveStraightOff() { if(On(move_straight)) m_iFlags ^= move_straight; }
 
   bool isFleeOn(){return On(flee);}
   bool isSeekOn(){return On(seek);}
@@ -401,6 +414,7 @@ public:
   bool isHideOn(){return On(hide);}
   bool isOffsetPursuitOn(){return On(offset_pursuit);}
   bool isCustomOffsetPursuitOn() { return On(custom_offset_pursuit); }
+  bool isMoveStraightOn() { return On(move_straight); }
 
   double DBoxLength()const{return m_dDBoxLength;}
   const std::vector<Vector2D>& GetFeelers()const{return m_Feelers;}

@@ -35,7 +35,9 @@ Vehicle::Vehicle(GameWorld* world,
                                        m_vSmoothedHeading(Vector2D(0,0)),
                                        m_bSmoothingOn(false),
                                        m_dTimeElapsed(0.0),
-                                       m_bLeader(false)
+                                       m_bLeader(false),
+                                       m_bRanAway(false),
+                                       m_bTail(true)
 {  
   InitializeBuffer();
 
@@ -90,10 +92,10 @@ void Vehicle::Update(double time_elapsed)
   m_vPos += m_vVelocity * time_elapsed;
 
   //update the heading if the vehicle has a non zero velocity
+  
   if (m_vVelocity.LengthSq() > 0.00000001)
   {    
     m_vHeading = Vec2DNormalize(m_vVelocity);
-
     m_vSide = m_vHeading.Perp();
   }
 
@@ -117,7 +119,7 @@ void Vehicle::Update(double time_elapsed)
 
 //-------------------------------- Render -------------------------------------
 //-----------------------------------------------------------------------------
-void Vehicle::Render()
+void Vehicle::Render(const bool& isCircle)
 { 
   //a vector to hold the transformed vertices
   static std::vector<Vector2D>  m_vecVehicleVBTrans;
@@ -144,6 +146,12 @@ void Vehicle::Render()
   {
     gdi->GreenPen();
   }
+  
+  if (Steering()->isMoveStraightOn()) 
+  {
+      gdi->DarkGreenBrush();
+      gdi->DarkGreenPen();
+  }
 
   if (isSmoothingOn())
   { 
@@ -164,12 +172,31 @@ void Vehicle::Render()
   }
 
   
-  gdi->ClosedShape(m_vecVehicleVBTrans);
+  if (isCircle) {
+      gdi->BlackBrush();
+      gdi->BlackPen();
+      gdi->Circle(Pos(), 3);
+  }
+  else {
+      gdi->ClosedShape(m_vecVehicleVBTrans);
+  }
   //render any visual aids / and or user options
   if (m_pWorld->ViewKeys())
   {
     Steering()->RenderAids();
   }
+}
+//----------------------------- OccurredDisplacement -----------------------------
+//
+//  validates if occurred a change of vehicle's position
+//-----------------------------------------------------------------------------
+bool Vehicle::OccurredDisplacement(const Vector2D& oldPos)
+{
+    int oldX = trunc(oldPos.x);
+    int oldY = trunc(oldPos.y);
+    int newX = trunc(m_vPos.x);
+    int newY = trunc(m_vPos.y);
+    return oldX != newX && oldY != newY;
 }
 
 

@@ -11,7 +11,7 @@
 #include "ParamLoader.h"
 #include "misc/WindowUtils.h"
 #include "misc/Stream_Utility_Functions.h"
-
+#include <algorithm>
 
 #include "resource.h"
 
@@ -41,7 +41,8 @@ GameWorld::GameWorld(int cx, int cy):
             m_bRenderNeighbors(false),
             m_bViewKeys(true),
             m_bShowCellSpaceInfo(false),
-            m_bShowOffsetPoint(false)
+            m_bShowOffsetPoint(false),
+            m_NumberGroup(1)
 {
 
   //setup the spatial subdivision class
@@ -70,9 +71,10 @@ GameWorld::GameWorld(int cx, int cy):
                                     Prm.VehicleScale);        //scale
 
     pVehicle->SmoothingOn();
-    pVehicle->Steering()->SeparationOn();
+    pVehicle->Steering()->FlockingOn();
+    pVehicle->Steering()->SetOffsetDistance(-1);
+    pVehicle->SetMaxSpeed(90);
     m_Vehicles.push_back(pVehicle);
-
     //add it to the cell subdivision
     m_pCellSpace->AddEntity(pVehicle);
   }
@@ -80,21 +82,14 @@ GameWorld::GameWorld(int cx, int cy):
 
 #define SHOAL
 #ifdef SHOAL
-  m_Vehicles[Prm.NumAgents-1]->Steering()->FlockingOff();
-  m_Vehicles[Prm.NumAgents-1]->Steering()->WanderOn();
-  m_Vehicles[Prm.NumAgents - 1]->SetMaxSpeed(100);
+  m_Vehicles[Prm.NumAgents - 1]->Steering()->FlockingOff();
+  m_Vehicles[Prm.NumAgents - 1]->Steering()->MoveStraightOn();
+  m_Vehicles[Prm.NumAgents - 1]->SetMaxSpeed(135);
+  m_Vehicles[Prm.NumAgents - 1]->SetScale(6.0);
 
-  SteeringBehavior::OrderFollowers(m_Vehicles, m_Vehicles[Prm.NumAgents - 1], Vector2D(-5, 0));
-  m_Vehicles[0]->Steering()->SetOffsetDistance(-1);
-  m_Vehicles[0]->Steering()->OffsetPursuitOn(m_Vehicles[Prm.NumAgents - 1], Vector2D(-5, 0));
-  int maxSpeed = 100;
-   for (int i=1; i<Prm.NumAgents-1; ++i)
+  for (int i=0; i<Prm.NumAgents-1; ++i)
   {
-       maxSpeed += 5;
-       m_Vehicles[i]->Steering()->SetOffsetDistance(-1);
-       m_Vehicles[i]->SetMaxSpeed(maxSpeed);
-       m_Vehicles[i]->Steering()->OffsetPursuitOn(m_Vehicles[i - 1], Vector2D(-5, 0));
-
+      m_Vehicles[i]->Steering()->FleeOn(m_Vehicles[Prm.NumAgents - 1]);
   }
 #endif
  
@@ -135,13 +130,20 @@ void GameWorld::Update(double time_elapsed)
   static Smoother<double> FrameRateSmoother(SampleRate, 0.0);
 
   m_dAvFrameTime = FrameRateSmoother.Update(time_elapsed);
-  
-
+  m_NumberGroup = 1;
+  //reset Flags
+  for (unsigned int a = 0; a < m_Vehicles.size(); ++a)
+  {
+      m_Vehicles[a]->SetFollowingId(-1);
+      m_Vehicles[a]->HasToRunAway(false);
+  }
   //update the vehicles
   for (unsigned int a=0; a<m_Vehicles.size(); ++a)
   {
     m_Vehicles[a]->Update(time_elapsed);
+    //EnforceNonPenetrationConstraint(m_Vehicles[a], m_Vehicles);
   }
+  m_OffsetPoints.clear();
 }
   
 
@@ -226,6 +228,23 @@ void GameWorld::CreateObstacles()
       }
     }
   }
+}
+
+//------------------------- AddCenterOfMass ----------------------------------
+//
+//  It will validate and add a new center of mass
+//  
+//----------------------------------------------------------------------------
+void GameWorld::AddCenterOfMass(const Vector2D& newCenterOfMass)
+{
+    if (m_CentersOfMass.empty()) {
+        m_CentersOfMass.push_back(newCenterOfMass);
+    }
+    else {
+        if (!std::any_of(m_CentersOfMass.begin(), m_CentersOfMass.end(), compare(newCenterOfMass))) {
+            m_CentersOfMass.push_back(newCenterOfMass);
+        }
+    }
 }
 
 
@@ -543,7 +562,7 @@ void GameWorld::Render()
   //render the agents
   for (unsigned int a=0; a<m_Vehicles.size(); ++a)
   {
-    m_Vehicles[a]->Render();  
+    m_Vehicles[a]->Render(a < m_Vehicles.size() - 1);
     
     //render cell partitioning stuff
     if (m_bShowCellSpaceInfo && a==0)

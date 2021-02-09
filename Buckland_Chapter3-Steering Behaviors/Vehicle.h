@@ -49,6 +49,14 @@ private:
 
   //this flag identifies if the vehicle is a leader
   bool                  m_bLeader;
+
+  //this flag identifies a vehicle which runs away of a target
+  bool                  m_bRanAway;
+
+  //this flag identifies a vehicle which is tail in a ofssetpursuit
+  bool                  m_bTail;
+
+  int                   m_iFollowingId;
   
 
   //keeps a track of the most recent update time. (some of the
@@ -84,7 +92,7 @@ public:
   //updates the vehicle's position and orientation
   void        Update(double time_elapsed);
 
-  void        Render();
+  void        Render(const bool& isCircle);
 
                                                                           
   //-------------------------------------------accessor methods
@@ -93,15 +101,20 @@ public:
 
   
   Vector2D    SmoothedHeading()const{return m_vSmoothedHeading;}
-
+  bool        RanAway()const { return m_bRanAway; }
+  void        HasToRunAway(const bool &flag){ m_bRanAway = flag; }
   bool        isSmoothingOn()const{return m_bSmoothingOn;}
   bool        isLeader()const { return m_bLeader; }
+  bool        IsTail()const { return m_bTail; }
+  int         FollowingId()const { return m_iFollowingId; }
+  void        SetTail(const bool &flag) { m_bTail = flag; }
+  void        SetFollowingId(const int& id) { m_iFollowingId = id; }
   void        SmoothingOn(){m_bSmoothingOn = true;}
   void        SmoothingOff(){m_bSmoothingOn = false;}
   void        ToggleSmoothing(){m_bSmoothingOn = !m_bSmoothingOn;}
-  void        BecomeLeader() { m_bLeader = true; }
-  double       TimeElapsed()const{return m_dTimeElapsed;}
- 
+  void        BeLeader(const bool& flag) { m_bLeader = flag; }
+  double      TimeElapsed()const{return m_dTimeElapsed;}
+  bool        OccurredDisplacement(const Vector2D& oldPos);
 };
 
 

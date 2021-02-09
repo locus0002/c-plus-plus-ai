@@ -11,7 +11,7 @@
 #include "misc/Stream_Utility_Functions.h"
 #include "EntityFunctionTemplates.h"
 #include <cassert>
-
+#include <algorithm>
 
 using std::string;
 using std::vector;
@@ -230,8 +230,8 @@ Vector2D SteeringBehavior::CalculatePrioritized()
   
   if (On(flee))
   {
-    force = Flee(m_pVehicle->World()->Crosshair()) * m_dWeightFlee;
-
+    //force = Flee(m_pVehicle->World()->Crosshair()) * m_dWeightFlee;
+    force = Flee(m_pTargetAgent1->Pos()) * m_dWeightFlee;
     if (!AccumulateForce(m_vSteeringForce, force)) return m_vSteeringForce;
   }
 
@@ -244,7 +244,6 @@ Vector2D SteeringBehavior::CalculatePrioritized()
     if (On(separation))
     {
       force = Separation(m_pVehicle->World()->Agents()) * m_dWeightSeparation;
-
       if (!AccumulateForce(m_vSteeringForce, force)) return m_vSteeringForce;
     }
 
@@ -363,6 +362,13 @@ Vector2D SteeringBehavior::CalculatePrioritized()
     force = FollowPath() * m_dWeightFollowPath;
 
     if (!AccumulateForce(m_vSteeringForce, force)) return m_vSteeringForce;
+  }
+
+  if (On(move_straight))
+  {
+      force = MoveStraight() * m_dWeightWander;
+
+      if (!AccumulateForce(m_vSteeringForce, force)) return m_vSteeringForce;
   }
 
   return m_vSteeringForce;
@@ -495,6 +501,11 @@ Vector2D SteeringBehavior::CalculateWeightedSum()
   if (On(follow_path))
   {
     m_vSteeringForce += FollowPath() * m_dWeightFollowPath;
+  }
+
+  if (On(move_straight))
+  {
+      m_vSteeringForce += MoveStraight() * m_dWeightWander;
   }
 
   m_vSteeringForce.Truncate(m_pVehicle->MaxForce());
@@ -675,6 +686,18 @@ Vector2D SteeringBehavior::CalculateDithered()
     }
   }
 
+  if (On(move_straight) && RandFloat() < Prm.prWander)
+  {
+      m_vSteeringForce += MoveStraight() * m_dWeightWander / Prm.prWander;
+
+      if (!m_vSteeringForce.isZero())
+      {
+          m_vSteeringForce.Truncate(m_pVehicle->MaxForce());
+
+          return m_vSteeringForce;
+      }
+  }
+
   if (On(seek) && RandFloat() < Prm.prSeek)
   {
     m_vSteeringForce += Seek(m_pVehicle->World()->Crosshair()) * m_dWeightSeek / Prm.prSeek;
@@ -726,19 +749,44 @@ Vector2D SteeringBehavior::Seek(Vector2D TargetPos)
 //------------------------------------------------------------------------
 Vector2D SteeringBehavior::Flee(Vector2D TargetPos)
 {
-  //only flee if the target is within 'panic distance'. Work in distance
-  //squared space.
- /* const double PanicDistanceSq = 100.0f * 100.0;
-  if (Vec2DDistanceSq(m_pVehicle->Pos(), target) > PanicDistanceSq)
-  {
-    return Vector2D(0,0);
-  }
-  */
-
-  Vector2D DesiredVelocity = Vec2DNormalize(m_pVehicle->Pos() - TargetPos) 
+    const Vehicle* fugitive = IsThereAFugitive();
+    if (fugitive != NULL) {
+        return OffsetPursuit(fugitive, Vector2D(3, 0));
+    }
+    //only flee if the target is within 'panic distance'. Work in distance
+    //squared space.
+    if (Vec2DDistanceSq(m_pVehicle->Pos(), TargetPos) > VisionRangeRad * VisionRangeRad)
+    {
+        m_pVehicle->HasToRunAway(false);
+        return Vector2D(0,0);
+    }
+  
+    m_pVehicle->Steering()->WanderOff();
+    Vector2D DesiredVelocity = Vec2DNormalize(m_pVehicle->Pos() - TargetPos) 
                             * m_pVehicle->MaxSpeed();
+    m_pVehicle->HasToRunAway(true);
+    return (DesiredVelocity - m_pVehicle->Velocity());
+}
 
-  return (DesiredVelocity - m_pVehicle->Velocity());
+//----------------------------- IsThereAFugitive -------------------------------------
+//
+//  This function helps to identify if there is a neighbour which already ran way of
+//  the dog
+//------------------------------------------------------------------------
+const Vehicle* SteeringBehavior::IsThereAFugitive() {
+    std::vector<Vehicle*>::const_iterator currentNeighbour = m_pVehicle->World()->Agents().begin();
+    while (currentNeighbour != m_pVehicle->World()->Agents().end()) {
+        if (m_pVehicle->ID() != (*currentNeighbour)->ID()
+            && (*currentNeighbour)->IsTagged()
+            && (*currentNeighbour)->RanAway()
+            && (*currentNeighbour)->FollowingId() != m_pVehicle->ID() )
+        {
+            m_pVehicle->SetFollowingId((*currentNeighbour)->ID());
+            return (*currentNeighbour);
+        }
+        currentNeighbour++;
+    }
+    return NULL;
 }
 
 //--------------------------- Arrive -------------------------------------
@@ -1084,7 +1132,7 @@ Vector2D SteeringBehavior::Separation(const vector<Vehicle*> &neighbors)
     //make sure this agent isn't included in the calculations and that
     //the agent being examined is close enough. ***also make sure it doesn't
     //include the evade target ***
-      //if((neighbors[a] != m_pVehicle) && neighbors[a]->IsTagged() && (neighbors[a] != m_pTargetAgent1))
+    //if((neighbors[a] != m_pVehicle) && neighbors[a]->IsTagged() && (neighbors[a] != m_pTargetAgent1))
     if((neighbors[a] != m_pVehicle) && neighbors[a]->IsTagged())
     {
       Vector2D ToAgent = m_pVehicle->Pos() - neighbors[a]->Pos();
@@ -1380,6 +1428,25 @@ Vector2D SteeringBehavior::Hide(const Vehicle*           hunter,
   return Arrive(BestHidingSpot, fast);
 }
 
+//----------------Move Straight--------------------
+//
+//this behavoir makes the agent move straight ahead
+//-------------------------------------------------
+Vector2D SteeringBehavior::MoveStraight()
+{
+    Vector2D target = Vector2D(1, 0);
+
+    //project the target into world space
+    Vector2D Target = PointToWorldSpace(target,
+        m_pVehicle->Heading(),
+        m_pVehicle->Side(),
+        m_pVehicle->Pos());
+
+    //and steer towards it
+    return Target - m_pVehicle->Pos();
+    return Vector2D();
+}
+
 //------------------------- GetHidingPosition ----------------------------
 //
 //  Given the position of a hunter, and the position and radius of
@@ -1598,7 +1665,6 @@ Vector2D SteeringBehavior::OffsetPursuit(const Vehicle*  leader,
                                                   leader->Heading(),
                                                   leader->Side(),
                                                   leader->Pos());
-
   Vector2D ToOffset = WorldOffsetPos - m_pVehicle->Pos();
   double newOffsetDistance = ToOffset.Length();
   //the lookahead time is propotional to the distance between the leader
@@ -1614,11 +1680,28 @@ Vector2D SteeringBehavior::OffsetPursuit(const Vehicle*  leader,
           (m_pVehicle->MaxSpeed() + leader->Speed());
 
       //now Arrive at the predicted future position of the offset
-      m_pVehicle->Steering()->SetOffsetPoint(WorldOffsetPos + leader->Velocity() * LookAheadTime);
+      SeparationOffsetPoints(WorldOffsetPos + leader->Velocity() * LookAheadTime);
+      m_pVehicle->Steering()->SetOffsetPoint(m_pVehicle->World()->OffsetPoints()->back());
   }
   
   //return Seek(m_pVehicle->Steering()->OffsetPoint());
   return Arrive(m_pVehicle->Steering()->OffsetPoint(), fast);
+}
+
+void SteeringBehavior::SeparationOffsetPoints(Vector2D newOffsetPoint) {
+    if (m_pVehicle->World()->OffsetPoints()->size() > 1) {
+        std::vector<Vector2D>::const_iterator currentPoint = m_pVehicle->World()->OffsetPoints()->begin();
+        while (currentPoint != m_pVehicle->World()->OffsetPoints()->end()) {
+            Vector2D toEntity = newOffsetPoint - (*currentPoint);
+            double distance = toEntity.Length();
+            double amountOverlap = (2 * m_pVehicle->BRadius()) - distance;
+            if (amountOverlap >= 0) {
+                newOffsetPoint = newOffsetPoint + (toEntity / distance) * (amountOverlap + (2*m_pVehicle->BRadius()));
+            }
+            currentPoint++;
+        }
+    }
+    m_pVehicle->World()->OffsetPoints()->push_back(newOffsetPoint);
 }
 
 //------------------------- Offset Pursuit -------------------------------
@@ -1724,10 +1807,25 @@ void SteeringBehavior::RenderAids( )
                                   m_pVehicle->Pos()), 3);                                  
   }
 
+  if (On(move_straight))
+  {
+      if (KEYDOWN(VK_LEFT)) {
+          m_pVehicle->TurnDirection(-1);
+      }
+      if (KEYDOWN(VK_RIGHT)) {
+          m_pVehicle->TurnDirection(1);
+      }
+      if (m_pVehicle->World()->RenderVisionRangeCircle()) {
+          gdi->HollowBrush();
+          gdi->GreyPen();
+          gdi->Circle(m_pVehicle->Pos(), VisionRangeRad);
+      }
+  }
+
   //render offset point
-  if (On(offset_pursuit) && m_pVehicle->World()->RenderOffsetPoint()) {
-      gdi->DarkGreenBrush();
-      gdi->DarkGreenPen();
+  if ((On(offset_pursuit) && m_pVehicle->World()->RenderOffsetPoint())) {
+      gdi->RedBrush();
+      gdi->RedPen();
       gdi->Circle(m_pVehicle->Steering()->OffsetPoint(), 2.0);
       gdi->TextAtPos(5, NextSlot, "Distance to Offset: "); gdi->TextAtPos(160, NextSlot, ttos(m_pVehicle->Steering()->OffsetDistance())); NextSlot += SlotSize;
   }
@@ -1853,7 +1951,7 @@ void SteeringBehavior::RenderAids( )
 
   if (On(cohesion))
   {
-    if (m_pVehicle->ID() == 0) {gdi->TextAtPos(5, NextSlot, "Cohesion(D/C):"); gdi->TextAtPos(160, NextSlot, ttos(m_dWeightCohesion/Prm.SteeringForceTweaker));NextSlot+=SlotSize;}
+    if (m_pVehicle->ID() == 0) { gdi->TextAtPos(5, NextSlot, "Cohesion(D/C):"); gdi->TextAtPos(160, NextSlot, ttos(m_dWeightCohesion/Prm.SteeringForceTweaker));NextSlot+=SlotSize; }
     if (KEYDOWN('D')){m_dWeightCohesion += 200*m_pVehicle->TimeElapsed();Clamp(m_dWeightCohesion, 0.0f, 50.0f * Prm.SteeringForceTweaker);}
     if (KEYDOWN('C')){m_dWeightCohesion -= 200*m_pVehicle->TimeElapsed();Clamp(m_dWeightCohesion, 0.0f, 50.0f * Prm.SteeringForceTweaker);}
   }

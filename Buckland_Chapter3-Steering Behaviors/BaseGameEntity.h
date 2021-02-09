@@ -36,6 +36,8 @@ private:
   //this is a generic flag. 
   bool        m_bTag;
 
+  int         m_GroupTag;
+
   //used by the constructor to give each entity a unique ID
   int NextValidID(){static int NextID = 0; return NextID++;}
 
@@ -56,7 +58,8 @@ protected:
                    m_vPos(Vector2D()),
                    m_vScale(Vector2D(1.0,1.0)),
                    m_EntityType(default_entity_type),
-                   m_bTag(false)
+                   m_bTag(false),
+                   m_GroupTag(-1)
   {}
 
   BaseGameEntity(int entity_type):m_ID(NextValidID()),
@@ -64,7 +67,8 @@ protected:
                    m_vPos(Vector2D()),
                    m_vScale(Vector2D(1.0,1.0)),
                    m_EntityType(entity_type),
-                   m_bTag(false)
+                   m_bTag(false),
+                   m_GroupTag(-1)
   {}
   
   BaseGameEntity(int entity_type, Vector2D pos, double r):m_vPos(pos),
@@ -72,7 +76,8 @@ protected:
                                         m_ID(NextValidID()),
                                         m_vScale(Vector2D(1.0,1.0)),
                                         m_EntityType(entity_type),
-                                        m_bTag(false)
+                                        m_bTag(false),
+                                        m_GroupTag(-1)
                                         
   {}
 
@@ -86,7 +91,8 @@ protected:
                    m_vPos(Vector2D()),
                    m_vScale(Vector2D(1.0,1.0)),
                    m_EntityType(entity_type),
-                   m_bTag(false)
+                   m_bTag(false),
+                   m_GroupTag(-1)
   {}
 
 
@@ -124,7 +130,8 @@ public:
 
   int          EntityType()const{return m_EntityType;}
   void         SetEntityType(int new_type){m_EntityType = new_type;}
-
+  void        SetGroupTag(const int& newGroupTag) { m_GroupTag = newGroupTag; }
+  int         GroupTag()const { return m_GroupTag; }
 };
 
 
