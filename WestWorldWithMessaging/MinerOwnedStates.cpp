@@ -253,7 +253,11 @@ void QuenchThirst::Exit(Miner* pMiner)
   }
 }
 
-
+//---------------------------------------------------------------------
+//  Vladimir Aca
+//  If the miner receives a message during his stay on the bar, and
+//  it is an insult, the miner is going to change into a "fight state"
+//---------------------------------------------------------------------
 bool QuenchThirst::OnMessage(Miner* pMiner, const Telegram& msg)
 {
   SetTextColor(BACKGROUND_RED|FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
@@ -308,14 +312,19 @@ bool EatStew::OnMessage(Miner* pMiner, const Telegram& msg)
 }
 
 
-//---------------------------------------------------------------------------Fight
+//---------------------------------------FIGHT STATE---------------------------------------------
+//  Vladimir Aca
+//  A new state is introduced to handle fights against the barfly, during these, the system 
+//  validates the miner fatigue before continuing fighting. Also, the miner Bob can leave 
+//  the fight if he receives a message from barfly where he surrenderes
+//-----------------------------------------------------------------------------------------------
 Fight* Fight::Instance() {
   static Fight instance;
   return &instance;
 }
 
 void Fight::Enter(Miner* miner) {
-  cout << endl << GetNameOfEntity(miner->ID()) << "Zis!" << endl << "Zas!" << endl << "Plaf!";
+  cout << endl << GetNameOfEntity(miner->ID()) << ": Zis!" << endl << "Zas!" << endl << "Plaf!";
 }
 void Fight::Execute(Miner* miner) {
   miner->IncreaseFatigue();
@@ -336,5 +345,17 @@ void Fight::Exit(Miner* miner) {
   cout << endl << GetNameOfEntity(miner->ID()) << ": Time to go home, eat and recovery";
 }
 bool Fight::OnMessage(Miner* miner, const Telegram& msg) {
+  if (miner->IsFighting()) {
+    SetTextColor(BACKGROUND_RED|FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
+    switch (msg.Msg)
+    {
+      case Msg_Surrendering:
+        cout << "\n" << GetNameOfEntity(miner->ID()) << ": " << " The fight finished";
+        miner->Fighting(false);
+        miner->GetFSM()->ChangeState(GoHomeAndSleepTilRested::Instance());
+        return true;
+    }
+  }
   return false;
 }
+//-----------------------------------------------------------------------------------------------

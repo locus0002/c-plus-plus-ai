@@ -1,7 +1,9 @@
 #ifndef LOCATIONS_H
 #define LOCATIONS_H
 
-
+//--------------------
+  //  Vladimir Aca
+  //  A new place was added to barFly
 enum location_type
 {
   shack,

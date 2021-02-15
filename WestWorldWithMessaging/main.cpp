@@ -29,6 +29,10 @@ int main()
   //create his wife
   MinersWife* Elsa = new MinersWife(ent_Elsa);
 
+  //------------------------------------
+  //  Vladimir Aca
+  //  The new entity is created
+  //------------------------------------
   BarFly* Fly = new BarFly(ent_Bar_Fly);
 
   //register them with the entity manager

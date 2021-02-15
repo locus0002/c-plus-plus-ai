@@ -1,3 +1,12 @@
+//------------------------------------------------------------------------
+//
+//  Name:   BarFly.cpp
+//
+//  Desc:   Definitions of missing functions in BarFly.h
+//
+//  Author: Vladimir Aca 2020
+//
+//------------------------------------------------------------------------
 #include "BarFly.h"
 
 void BarFly::Update() {

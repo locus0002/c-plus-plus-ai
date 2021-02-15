@@ -172,6 +172,10 @@ public:
   virtual bool OnMessage(Miner* agent, const Telegram& msg);
 };
 
+//-------------------FIGHT STATE-----------------------------------
+//  Vladimir Aca
+//  A new state is introduced to handle fights against the barfly
+//-----------------------------------------------------------------
 class Fight: public State<Miner> {
     private:
         Fight() {}

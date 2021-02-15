@@ -21,9 +21,9 @@ struct Telegram;
 
 //the amount of sobriety
 const int DrunkLevel         = -5;
-//the amount of nuggets a miner can carry
+//the max amount of drinks
 const int MaxDrinks          = 4;
-//above this value a miner is sleepy
+//above this value a miner is tired
 const int TirednessThresholdBF = 5;
 
 class BarFly: public BaseGameEntity {

@@ -53,7 +53,10 @@ private:
   //the higher the value, the more tired the miner
   int                   m_iFatigue;
 
-  //the higher the value, the more tired the miner
+  //---------------------------------------------------
+  //  Vladimir Aca
+  //  a flag that indicates that a miner is in a fight
+  //---------------------------------------------------
   bool                   m_isFighting;
 
 public:
@@ -93,6 +96,10 @@ public:
     
   int           GoldCarried()const{return m_iGoldCarried;}
   void          SetGoldCarried(int val){m_iGoldCarried = val;}
+  //-------------------------------------------------------------------
+  //  Vladimir Aca
+  //  functions to set the fight flag and getting the value of the flag
+  //-------------------------------------------------------------------
   void          Fighting(bool isFighting){m_isFighting = isFighting;}
   bool          IsFighting()const{ return m_isFighting; }
   void          AddToGoldCarried(int val);

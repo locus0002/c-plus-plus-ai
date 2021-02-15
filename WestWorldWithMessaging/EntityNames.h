@@ -22,9 +22,14 @@ inline std::string GetNameOfEntity(int n)
     
     return "Elsa"; 
 
+  //--------------------------------------------
+  //  Vladimir Aca
+  //  A new case was implemented to identify a 
+  //  new entity
+  //--------------------------------------------
   case ent_Bar_Fly:
     return "Bar Fly";
-
+  //--------------------------------------------
   default:
 
     return "UNKNOWN!";

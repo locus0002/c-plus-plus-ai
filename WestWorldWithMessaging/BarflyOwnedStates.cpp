@@ -1,3 +1,13 @@
+//------------------------------------------------------------------------
+//
+//  Name:   BarflyOwnedStates.cpp
+//
+//  Desc:   A class defining a bar fly.
+//
+//  Author: Vladimir Aca 2020
+//
+//------------------------------------------------------------------------
+
 #include "BarflyOwnedStates.h"
 #include "../Common/FSM/State.h"
 #include "BarFly.h"
@@ -163,6 +173,11 @@ void FightBF::Execute(BarFly* barfly) {
     if (barfly->Fatigued()) {
         cout << endl << GetNameOfEntity(barfly->ID()) << ": I surrender... you win!!";
         barfly->GetFSM()->ChangeState(GoHomeNRecovery::Instance());
+        Dispatch->DispatchMessage(SEND_MSG_IMMEDIATELY,
+                                barfly->ID(),
+                                ent_Miner_Bob,
+                                Msg_Surrendering,
+                                NULL);
     } else {
         cout << endl << GetNameOfEntity(barfly->ID()) << ": I have more for you!";
     }
