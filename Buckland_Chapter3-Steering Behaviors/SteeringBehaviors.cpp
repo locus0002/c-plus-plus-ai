@@ -1404,7 +1404,11 @@ Vector2D SteeringBehavior::Hide(const Vehicle*           hunter,
     //work in distance-squared space to find the closest hiding
     //spot to the agent
     double dist = Vec2DDistanceSq(HidingSpot, m_pVehicle->Pos());
+    //----------------------------------------------------------------------
+    // Vladimir Aca
+    // This buffer stores the hiding points to draw them in the screen
     posibleHiddingSpots.push_back(HidingSpot);
+    //----------------------------------------------------------------------
     if (dist < DistToClosest && IsNotInFront(HidingSpot, hunter))
     {
       DistToClosest = dist;
@@ -1448,7 +1452,7 @@ Vector2D SteeringBehavior::MoveStraight()
 }
 
 //------------------------- GetHidingPosition ----------------------------
-//
+//  
 //  Given the position of a hunter, and the position and radius of
 //  an obstacle, this method calculates a position DistanceFromBoundary 
 //  away from its bounding radius and directly opposite the hunter
@@ -1470,7 +1474,7 @@ Vector2D SteeringBehavior::GetHidingPosition(const Vector2D& posOb,
   return (ToOb * DistAway) + posOb;
 }
 //------------------------- HunterIsOnVisionRange ------------------------
-//
+//  Vladimir Aca
 //  Validates if the position of a hunter is inside of vision range radius
 //------------------------------------------------------------------------
 bool SteeringBehavior::IsHunterOnVisionRange(const Vector2D& posHunter)
@@ -1483,7 +1487,7 @@ bool SteeringBehavior::IsHunterOnVisionRange(const Vector2D& posHunter)
     return false;
 }
 //------------------------- IsHunterClose --------------------------------
-//
+//  Vladimir Aca
 //  Validates if the position of a hunter is still close depending on
 //  the seconds elapsed and the last time it was seen
 //------------------------------------------------------------------------
@@ -1498,8 +1502,9 @@ bool SteeringBehavior::IsHunterClose()
     return true;
 }
 //------------------------- IsNotInFront --------------------------------
-//
-//  Validates if the position of the hiding spot is not in fron of a hunter
+//  Vladimir Aca
+//  Validates if the position of the hiding spot is not in front of the
+//  hunter
 //------------------------------------------------------------------------
 bool SteeringBehavior::IsNotInFront(const Vector2D& posOb,
                                     const Vehicle* hunter)
@@ -1523,8 +1528,8 @@ bool SteeringBehavior::IsNotInFront(const Vector2D& posOb,
     return false;
 }
 //------------------------- SetHidingDelimiters --------------------------------
-//
-//  Create the vertixs of the hiding delimiters to help to visualize the best 
+//  Vladimir Aca
+//  Creates the vertices of the hiding delimiters to help to visualize the best 
 //  hiding spots
 //------------------------------------------------------------------------------
 void SteeringBehavior::SetHidingDelimiters(const Vehicle* hunter)
@@ -1965,6 +1970,10 @@ void SteeringBehavior::RenderAids( )
     if (KEYDOWN('C')){m_dWaypointSeekDistSq -= 1.0; Clamp(m_dWaypointSeekDistSq, 0.0f, 400.0f);}
   }  
 
+  //--------------------------------------------------------------------------------------------------------------------------------------------
+  //    Vladimir Aca
+  //    This block of code draws the aids of the Hide Algorithm (hiding spots, best hiding spots, delimiters, and some useful information)
+  //--------------------------------------------------------------------------------------------------------------------------------------------
   if (On(hide) && m_pVehicle->World()->RenderVisionRangeCircle())
   {
       gdi->GreyPen();
@@ -2001,6 +2010,7 @@ void SteeringBehavior::RenderAids( )
           }
       }
   }
+  //--------------------------------------------------------------------------------------------------------------------------------------------
 }
 
 

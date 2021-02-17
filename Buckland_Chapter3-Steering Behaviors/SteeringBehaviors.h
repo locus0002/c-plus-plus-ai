@@ -289,20 +289,24 @@ private:
   Vector2D CalculateWeightedSum();
   Vector2D CalculatePrioritized();
   Vector2D CalculateDithered();
-
-  //helper method for Hide. Returns a position located on the other
-  //side of an obstacle to the pursuer
+  //   Helper method for Hide. Returns a position located on the other
+  //   side of an obstacle to the pursuer
   Vector2D GetHidingPosition(const Vector2D& posOb,
                               const double     radiusOb,
                               const Vector2D& posHunter);
+  //--------------------------------------------------------
+  //       Vladimir Aca
+  //   The next functions were created to implement new
+  //   improvements to the hide algorithm which are going been
+  //   explained in the definition (SteeringBehavior.cpp)
   bool     IsHunterOnVisionRange(const Vector2D& posHunter);
   bool     IsHunterClose();
   bool     IsNotInFront(const Vector2D& posOb,
                         const Vehicle*  hunter);
   void     SetHidingDelimiters(const Vehicle* hunter);
+  //--------------------------------------------------------
 
   const Vehicle*     IsThereAFugitive();
-
 
   
   

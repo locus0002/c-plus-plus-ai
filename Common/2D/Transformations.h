@@ -19,7 +19,28 @@
 
 
 
+//------------------------ CustomWorldTransform --------------------------
+//
+//  given a std::vector of 2D vectors, and a position this function transforms
+//  the 2D vectors into the object's world space
+//-------------------------------------------------------------------------
+inline std::vector<Vector2D> CustomWorldTransform(std::vector<Vector2D>& points,
+    const Vector2D& pos)
+{
+    //copy the original vertices into the buffer about to be transformed
+    std::vector<Vector2D> TranVector2Ds = points;
 
+    //create a transformation matrix
+    C2DMatrix matTransform;
+
+    //and translate
+    matTransform.Translate(pos.x, pos.y);
+
+    //now transform the object's vertices
+    matTransform.TransformVector2Ds(TranVector2Ds);
+
+    return TranVector2Ds;
+}
 
 //--------------------------- WorldTransform -----------------------------
 //
