@@ -59,17 +59,18 @@ You can watch it in action, just hit the [link](https://www.linkedin.com/feed/up
 ## Leader Following
 
 I implemented the "Leader Following Behavior" which is an exercise suggested by the "Programming Game AI by Example" book.
-Note: I modified the "Offset Pursuit" algorithm to avoid a strange behavior when the leader changed his position suddenly because the game world behaves as a toroid.
+
+__Note__: I modified the "Offset Pursuit" algorithm to avoid a strange behavior when the leader changed his position suddenly because the game world behaves as a toroid.
 
 <p align="center" >
     <img src="https://github.com/locus0002/c-plus-plus-ai/blob/master/images/leader_following.png?raw=true" />
 </p>
 
 If you are curious about the code, here is the list of the functions
-- [ValidateOffsetPoint]()
-- [OrderFollowers]()
-- [AddSortedVehicle]()
-- [Modification in OffsetPursuit]()
+- [ValidateOffsetPoint](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1715)
+- [OrderFollowers](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1580)
+- [AddSortedVehicle](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1618)
+- [Modification in OffsetPursuit](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1663)
 
 You can watch it in action, just hit the [link](https://www.linkedin.com/feed/update/urn:li:activity:6754449895190515712/)
 
@@ -99,10 +100,10 @@ You can watch it in action, just hit the [link](https://www.linkedin.com/feed/up
 </p>
 
 If you are curious about the code, here is the list of the modifications and new implementations
-- [MoveStraight]()
-- [Modification in Flee Behavior]()
-- The class [Vehicle.cpp]() and [Vehicle.h]() was modified to add new features that help to implement the "flock of sheep behavior"
-- Control by the keyboard Steering
-- [TurnDirection]()
+- [MoveStraight](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1436)
+- [Modification in Flee Behavior](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L746)
+- The class [Vehicle.cpp](Buckland_Chapter3-Steering%20Behaviors/Vehicle.cpp) and [Vehicle.h](Buckland_Chapter3-Steering%20Behaviors/Vehicle.h) was modified to add new features that help to implement the "flock of sheep behavior"
+- [Control by the keyboard](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1819)
+- [TurnDirection](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/MovingEntity.h#L156)
 
 You can watch it in action, just hit the [link](https://www.linkedin.com/feed/update/urn:li:activity:6759507835865878529/)
