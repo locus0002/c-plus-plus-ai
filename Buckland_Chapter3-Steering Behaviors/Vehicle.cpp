@@ -171,7 +171,13 @@ void Vehicle::Render(const bool& isCircle)
                                          Scale());
   }
 
-  
+  //-----------------------------------------------------------------
+  //  Vladimir Aca
+  //  I had to use a trick to avoid the heads (triangles) of the 
+  //  vehicles transform into small dots due to the abrupt
+  //  changes of directions because of the forces that act on 
+  //  the vehicle. That is the reason because the sheep are black dots
+  //-----------------------------------------------------------------
   if (isCircle) {
       gdi->BlackBrush();
       gdi->BlackPen();

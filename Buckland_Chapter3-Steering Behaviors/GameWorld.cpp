@@ -131,7 +131,8 @@ void GameWorld::Update(double time_elapsed)
 
   m_dAvFrameTime = FrameRateSmoother.Update(time_elapsed);
   m_NumberGroup = 1;
-  //reset Flags
+  //  Vladimir Aca
+  //  reset Flags
   for (unsigned int a = 0; a < m_Vehicles.size(); ++a)
   {
       m_Vehicles[a]->SetFollowingId(-1);
@@ -141,8 +142,8 @@ void GameWorld::Update(double time_elapsed)
   for (unsigned int a=0; a<m_Vehicles.size(); ++a)
   {
     m_Vehicles[a]->Update(time_elapsed);
-    //EnforceNonPenetrationConstraint(m_Vehicles[a], m_Vehicles);
   }
+  //  Vladimir Aca
   m_OffsetPoints.clear();
 }
   

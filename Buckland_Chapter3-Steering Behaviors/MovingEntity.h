@@ -89,6 +89,7 @@ public:
   void      SetHeading(Vector2D new_heading);
   bool      RotateHeadingToFacePosition(Vector2D target);
 
+  // Vladimir Aca
   // these functions will change the direction of the agent
   void      TurnDirection(const int &direction);
 
@@ -152,8 +153,9 @@ inline void MovingEntity::SetHeading(Vector2D new_heading)
   m_vSide = m_vHeading.Perp();
 }
 
-//------------------------ Turns -------------------------
-// these function will change the direction of the vehicle
+//------------------- TurnDirection ----------------------
+// Vladimir Aca
+// this function will change the direction of the vehicle
 //--------------------------------------------------------
 inline void MovingEntity::TurnDirection(const int& direction) {
     C2DMatrix RotationMatrix;

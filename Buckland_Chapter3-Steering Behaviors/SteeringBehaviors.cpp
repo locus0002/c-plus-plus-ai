@@ -769,10 +769,10 @@ Vector2D SteeringBehavior::Flee(Vector2D TargetPos)
 }
 
 //----------------------------- IsThereAFugitive -------------------------------------
-//
-//  This function helps to identify if there is a neighbour which already ran way of
-//  the dog
-//------------------------------------------------------------------------
+//  Vladimir Aca
+//  This function helps to identify if there are any neighbor which already ran away
+//  from the dog
+//------------------------------------------------------------------------------------
 const Vehicle* SteeringBehavior::IsThereAFugitive() {
     std::vector<Vehicle*>::const_iterator currentNeighbour = m_pVehicle->World()->Agents().begin();
     while (currentNeighbour != m_pVehicle->World()->Agents().end()) {
@@ -1126,13 +1126,14 @@ void SteeringBehavior::CreateFeelers()
 Vector2D SteeringBehavior::Separation(const vector<Vehicle*> &neighbors)
 {  
   Vector2D SteeringForce;
-  //TODO: Modify this function to exclude a targetAgent validation when the behavior is follow the leader
   for (unsigned int a=0; a<neighbors.size(); ++a)
   {
     //make sure this agent isn't included in the calculations and that
     //the agent being examined is close enough. ***also make sure it doesn't
     //include the evade target ***
-    //if((neighbors[a] != m_pVehicle) && neighbors[a]->IsTagged() && (neighbors[a] != m_pTargetAgent1))
+    
+    //  Vladimir Aca
+    //  this function excludes the target agent validation when the behavior is follow the leader
     if((neighbors[a] != m_pVehicle) && neighbors[a]->IsTagged())
     {
       Vector2D ToAgent = m_pVehicle->Pos() - neighbors[a]->Pos();
@@ -1433,8 +1434,10 @@ Vector2D SteeringBehavior::Hide(const Vehicle*           hunter,
 }
 
 //----------------Move Straight--------------------
-//
-//this behavoir makes the agent move straight ahead
+//  Vladimir Aca
+//  This behavior makes the agent move straight
+//  ahead and the user just cares to turn in the
+//  correct direction
 //-------------------------------------------------
 Vector2D SteeringBehavior::MoveStraight()
 {
@@ -1575,9 +1578,9 @@ Vector2D SteeringBehavior::FollowPath()
 }
 
 //------------------------- Order Followers -------------------------------
-//
-//  Produces a steering force that keeps a vehicle at a specified offset
-//  from a leader vehicle in a file
+//  Vladimir Aca
+//  This function helps to identify the closest vehicle to the leader
+//  and order the vehicles from closest to farthest
 //------------------------------------------------------------------------
 void SteeringBehavior::OrderFollowers(std::vector<Vehicle*>& followers, const Vehicle* leader, const Vector2D offset)
 {
@@ -1592,7 +1595,6 @@ void SteeringBehavior::OrderFollowers(std::vector<Vehicle*>& followers, const Ve
     {
         if (leader->ID() != (*currentVehicle)->ID())
         {
-            
             (*currentVehicle)->Steering()->SetOffsetPoint(WorldOffsetPos - (*currentVehicle)->Pos());
             (*currentVehicle)->Steering()->SetOffsetDistance((*currentVehicle)->Steering()->OffsetPoint().Length());
             if (buffer.empty())
@@ -1613,6 +1615,10 @@ void SteeringBehavior::OrderFollowers(std::vector<Vehicle*>& followers, const Ve
     followers = buffer;
 }
 
+//------------------------- AddSortedVehicle -------------------------------
+//  Vladimir Aca
+//  this function adds new elements orderly based on the offset distance
+//--------------------------------------------------------------------------
 void SteeringBehavior::AddSortedVehicle(std::vector<Vehicle*>& buffer, Vehicle* currentVehicle) {
     std::vector<Vehicle*>::const_iterator it = buffer.begin();
     while (it != buffer.end())
@@ -1662,9 +1668,6 @@ Vector2D SteeringBehavior::CustomOffsetPursuit(const Vehicle* leader,
 Vector2D SteeringBehavior::OffsetPursuit(const Vehicle*  leader,
                                           const Vector2D offset)
 {
-    // TODO: simulate a correct follow the leader behavior it is necessary to handle 
-    // the world like a toroid and NO TO RESET the distance
-
   //calculate the offset's position in world space
   Vector2D WorldOffsetPos = PointToWorldSpace(offset,
                                                   leader->Heading(),
@@ -1677,6 +1680,7 @@ Vector2D SteeringBehavior::OffsetPursuit(const Vehicle*  leader,
   //agent's velocities
   // main formula v = d/t
   // adjusting t = d/v
+  // Vladimir Aca, this validation makes a vehicle continues its way like the game world is a toroid
   if (m_pVehicle->Steering()->OffsetDistance() == -1 || ValidateOffsetPoint(newOffsetDistance, m_pVehicle->Steering()->OffsetDistance(), m_pVehicle->Pos()))
   {
       //the leader has not disappeared
@@ -1689,7 +1693,6 @@ Vector2D SteeringBehavior::OffsetPursuit(const Vehicle*  leader,
       m_pVehicle->Steering()->SetOffsetPoint(m_pVehicle->World()->OffsetPoints()->back());
   }
   
-  //return Seek(m_pVehicle->Steering()->OffsetPoint());
   return Arrive(m_pVehicle->Steering()->OffsetPoint(), fast);
 }
 
@@ -1709,11 +1712,12 @@ void SteeringBehavior::SeparationOffsetPoints(Vector2D newOffsetPoint) {
     m_pVehicle->World()->OffsetPoints()->push_back(newOffsetPoint);
 }
 
-//------------------------- Offset Pursuit -------------------------------
-//
-//  Produces a steering force that keeps a vehicle at a specified offset
-//  from a leader vehicle
-//------------------------------------------------------------------------
+//------------------------- ValidateOffsetPoint ---------------------------
+//  Vladimir Aca
+//  this function helps to not interrupt a vehicle direction when it is in
+//  the limit of the area because the game world has to be handled like 
+//  a toroid
+//-------------------------------------------------------------------------
 bool SteeringBehavior::ValidateOffsetPoint(const double& newDistance, const double& oldDistance, const Vector2D& followerPostion) {
     double difference = abs(newDistance - oldDistance);
     int limit = 90;
@@ -1772,7 +1776,8 @@ void SteeringBehavior::RenderAids( )
     gdi->Line(m_pVehicle->Pos(), m_pVehicle->Pos() + F);
   }
 
-  //draw the vision range circle
+  //  Vladimir Aca
+  //  draw the vision range circle
   if (On(wander) && m_pVehicle->World()->RenderVisionRangeCircle()) {
       gdi->BluePen();
       gdi->Circle(m_pVehicle->Pos(), VisionRangeRad);
@@ -1811,7 +1816,10 @@ void SteeringBehavior::RenderAids( )
                                   m_pVehicle->Side(),
                                   m_pVehicle->Pos()), 3);                                  
   }
-
+  // --------------------------------------------------------------------------------
+  //  Vladimir Aca
+  //  This block of code implements the control by the keyboard of the vehicle (dog)
+  //---------------------------------------------------------------------------------
   if (On(move_straight))
   {
       if (KEYDOWN(VK_LEFT)) {

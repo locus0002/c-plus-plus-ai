@@ -49,13 +49,15 @@ private:
 
   //this flag identifies if the vehicle is a leader
   bool                  m_bLeader;
-
-  //this flag identifies a vehicle which runs away of a target
+  //  Vladimir Aca
+  //  this flag identifies a vehicle which runs away of a target
   bool                  m_bRanAway;
 
   //this flag identifies a vehicle which is tail in a ofssetpursuit
   bool                  m_bTail;
 
+  //  Vladimir Aca
+  //  this attribute stores the ID of the vehicle which the agent is following
   int                   m_iFollowingId;
   
 
@@ -101,13 +103,16 @@ public:
 
   
   Vector2D    SmoothedHeading()const{return m_vSmoothedHeading;}
+  //  Vladimir Aca
   bool        RanAway()const { return m_bRanAway; }
   void        HasToRunAway(const bool &flag){ m_bRanAway = flag; }
   bool        isSmoothingOn()const{return m_bSmoothingOn;}
   bool        isLeader()const { return m_bLeader; }
   bool        IsTail()const { return m_bTail; }
+  //  Vladimir Aca
   int         FollowingId()const { return m_iFollowingId; }
   void        SetTail(const bool &flag) { m_bTail = flag; }
+  //  Vladimir Aca
   void        SetFollowingId(const int& id) { m_iFollowingId = id; }
   void        SmoothingOn(){m_bSmoothingOn = true;}
   void        SmoothingOff(){m_bSmoothingOn = false;}

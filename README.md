@@ -54,4 +54,55 @@ If you are curious about the code that helped to implement the improvements, her
 - [Hide](https://github.com/locus0002/c-plus-plus-ai/blob/197d36eba96f371791948daa56f225d7eed3e86a/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1383)
 - [aids](https://github.com/locus0002/c-plus-plus-ai/blob/197d36eba96f371791948daa56f225d7eed3e86a/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1973)
 
-You can watch it in action, just hit the [here](https://www.linkedin.com/feed/update/urn%3Ali%3Aactivity%3A6749366532184293376/)
+You can watch it in action, just hit the [link](https://www.linkedin.com/feed/update/urn%3Ali%3Aactivity%3A6749366532184293376/)
+
+## Leader Following
+
+I implemented the "Leader Following Behavior" which is an exercise suggested by the "Programming Game AI by Example" book.
+Note: I modified the "Offset Pursuit" algorithm to avoid a strange behavior when the leader changed his position suddenly because the game world behaves as a toroid.
+
+<p align="center" >
+    <img src="https://github.com/locus0002/c-plus-plus-ai/blob/master/images/leader_following.png?raw=true" />
+</p>
+
+If you are curious about the code, here is the list of the functions
+- [ValidateOffsetPoint]()
+- [OrderFollowers]()
+- [AddSortedVehicle]()
+- [Modification in OffsetPursuit]()
+
+You can watch it in action, just hit the [link](https://www.linkedin.com/feed/update/urn:li:activity:6754449895190515712/)
+
+## Steering Behavior - Flock Of Sheep
+> I implemented a simulation of the behavior of a herding dog and a flock of sheeps
+
+### Herding Dog (Triangle)
+
+- The moves of this agent are controlled by a user (keyboard inputs)
+
+### The flock of Sheep (Black Dots)
+
+- These agents have a combination of behaviors
+- The agents can form groups if these are enough close to each of them
+- If some agent of a group identifies the herding dog because this one is in the range of the vision of the agent (sheep), the agent will try to stay away from the herding dog
+- If some agent of a group identifies that some of their neighbors (sheep) are running away, the agent will start to follow them
+- The agents (sheep) that already saw the herding dog, will try to stay in the last position where the herding dog guided them, otherwise, the agents (sheep) can walk around
+
+### Before
+<p align="center" >
+    <img src="https://github.com/locus0002/c-plus-plus-ai/blob/master/images/flock_sheep1.png?raw=true" />
+</p>
+
+### After
+<p align="center" >
+    <img src="https://github.com/locus0002/c-plus-plus-ai/blob/master/images/flock_sheep2.png?raw=true" />
+</p>
+
+If you are curious about the code, here is the list of the modifications and new implementations
+- [MoveStraight]()
+- [Modification in Flee Behavior]()
+- The class [Vehicle.cpp]() and [Vehicle.h]() was modified to add new features that help to implement the "flock of sheep behavior"
+- Control by the keyboard Steering
+- [TurnDirection]()
+
+You can watch it in action, just hit the [link](https://www.linkedin.com/feed/update/urn:li:activity:6759507835865878529/)
