@@ -1,109 +1,34 @@
 # AI with C++
 > In this repository, you will be able to find my approach to exercises and improvements that "_Programming Game AI by Example_" suggested.
 
+## How to run the projects
 
-## Finite State Machine
-During the second chapter, the book explains an FST with an example where two agents, Bob (who is a miner), and Elsa (who is the miner's wife) seem to be alive, furthermore, they can interact with each other.
+If you desire to run the __FSM project__, which is inside of the _WestWorldWithMessagin_ folder, follow the next steps.
 
+- Clone the repository
+- Open [Visual Studio Code](https://code.visualstudio.com/) (that was my code editor for this exercise)
+- Modify the task.json file and the c_cpp_properties.json file ([Here](https://code.visualstudio.com/docs/cpp/config-mingw) you can find a tutorial on how to configure your tasks in VSC)
+- Finally, run the project
 
-### Modifying the FSM
-A new character was introduced, a barfly. This person is going to insult miner Bob in the saloon and then, they get into a fight.
-My approach is going to be explained in the next graphs.
+For the exercises of chapter 3 (__Steering Behaviors__), you have to follow the next steps
+- Clone the repository
+- Deciding which exercise you want to run
+- Switching to the desired commit
+    - __Steering behavior hide__ (_3a2abf8fa24762864e4c205b383c9a312714a2c6_)
+    - __Leader following__ (_9638631f73991abe2c1c3da05de8d5f9ee6757e0_)
+    - __Flock of Sheep__ (_698e41afe0a31f817f3d1f9a03c8f276d8b4db7b_)
+- Open the project file (_Steering.sln_) inside of the _Buckland_Chapter3_ folder with Visual Studio 2019 (the reason because I used this IDE, was the simplicity to run the whole project)
+- Right-click on the _Steering_ project
+- Choose _Properties_
+- In the pop-up window select _Configuration Properties_ > _C/C++_ > _General_
+- Verifies _Additional Include Directories_ is pointing to the correct path
+- Finally, run the project
 
+## Want to know more about my approaches
 
-#### Miner Bob
-![minerbobstates](https://github.com/locus0002/c-plus-plus-ai/blob/master/images/miner.png?raw=true)
-> As you can see, a new state was added to the states of Bob. The purpose is to handle the fight against the barfly. Plus, it was mandatory to add new transitions to change among states.
+Here you can find the __explanations__ of the exercises that I implemented
 
-
-#### Barfly
-![minerbobstates](https://github.com/locus0002/c-plus-plus-ai/blob/master/images/barfly.png?raw=true)
-> The design of the barfly states and their transitions is shown in the last image. As you can notice, each transition is accompanied by a label that explains briefly how the barfly can change from a current state to another.
-
-
-Finally, you can see my improvements in the next files.
-- [BarFly.cpp](WestWorldWithMessaging/BarFly.cpp)
-- [BarFly.h](WestWorldWithMessaging/BarFly.h)
-- [BarflyOwnedStates.cpp](WestWorldWithMessaging/BarflyOwnedStates.cpp)
-- [BarflyOwnedStates.h](WestWorldWithMessaging/BarflyOwnedStates.h)
-- [EntityNames.h](WestWorldWithMessaging/EntityNames.h)
-- [main.cpp](WestWorldWithMessaging/main.cpp)
-- [MessagesTypes.h](WestWorldWithMessaging/MessagesTypes.h)
-- [Miner.h](WestWorldWithMessaging/Miner.h)
-- [MinerOwnedStates.cpp](WestWorldWithMessaging/MinerOwnedStates.cpp)
-- [MinerOwnedStates.h](WestWorldWithMessaging/MinerOwnedStates.h)
-
-
-## Steering Behavior - Hide
-
-In the third chapter, the book suggests some improvements to the Hide Algorithm, and my approach implements the next considerations.
-
-- The prey tries to hide when the hunter is in the prey's vision radius (gray circumference) and the prey is in the hunter's vision radius (blue circumference)
-- Whether the hunter is not in the vision radius, the prey tries to hide if the last time when the hunter was seen within the elapsed N seconds (N is an initial parameter)
-- The possible hiding spots (dark green dots) will be which are on the side or in the back of the hunter. The front area covers 30 degrees on the left side of the hunter's head and 30 degrees on the right side of the same. (60 degrees in total)
-
-<p align="center" >
-    <img src="https://github.com/locus0002/c-plus-plus-ai/blob/master/images/hide.png?raw=true" />
-</p>
-
-If you are curious about the code that helped to implement the improvements, here is the list of the functions
-- [IsHunterOnVisionRange](https://github.com/locus0002/c-plus-plus-ai/blob/197d36eba96f371791948daa56f225d7eed3e86a/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1476)
-- [IsHunterClose](https://github.com/locus0002/c-plus-plus-ai/blob/197d36eba96f371791948daa56f225d7eed3e86a/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1489)
-- [IsNotInFront](https://github.com/locus0002/c-plus-plus-ai/blob/197d36eba96f371791948daa56f225d7eed3e86a/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1504)
-- [SetHidingDelimiters](https://github.com/locus0002/c-plus-plus-ai/blob/197d36eba96f371791948daa56f225d7eed3e86a/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1530)
-- [Hide](https://github.com/locus0002/c-plus-plus-ai/blob/197d36eba96f371791948daa56f225d7eed3e86a/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1383)
-- [aids](https://github.com/locus0002/c-plus-plus-ai/blob/197d36eba96f371791948daa56f225d7eed3e86a/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1973)
-
-You can watch it in action, just hit the [link](https://www.linkedin.com/feed/update/urn%3Ali%3Aactivity%3A6749366532184293376/)
-
-## Leader Following
-
-I implemented the "Leader Following Behavior" which is an exercise suggested by the "Programming Game AI by Example" book.
-
-__Note__: I modified the "Offset Pursuit" algorithm to avoid a strange behavior when the leader changed his position suddenly because the game world behaves as a toroid.
-
-<p align="center" >
-    <img src="https://github.com/locus0002/c-plus-plus-ai/blob/master/images/leader_following.png?raw=true" />
-</p>
-
-If you are curious about the code, here is the list of the functions
-- [ValidateOffsetPoint](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1715)
-- [OrderFollowers](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1580)
-- [AddSortedVehicle](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1618)
-- [Modification in OffsetPursuit](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1663)
-
-You can watch it in action, just hit the [link](https://www.linkedin.com/feed/update/urn:li:activity:6754449895190515712/)
-
-## Steering Behavior - Flock Of Sheep
-> I implemented a simulation of the behavior of a herding dog and a flock of sheeps
-
-### Herding Dog (Triangle)
-
-- The moves of this agent are controlled by a user (keyboard inputs)
-
-### The flock of Sheep (Black Dots)
-
-- These agents have a combination of behaviors
-- The agents can form groups if these are enough close to each of them
-- If some agent of a group identifies the herding dog because this one is in the range of the vision of the agent (sheep), the agent will try to stay away from the herding dog
-- If some agent of a group identifies that some of their neighbors (sheep) are running away, the agent will start to follow them
-- The agents (sheep) that already saw the herding dog, will try to stay in the last position where the herding dog guided them, otherwise, the agents (sheep) can walk around
-
-### Before
-<p align="center" >
-    <img src="https://github.com/locus0002/c-plus-plus-ai/blob/master/images/flock_sheep1.png?raw=true" />
-</p>
-
-### After
-<p align="center" >
-    <img src="https://github.com/locus0002/c-plus-plus-ai/blob/master/images/flock_sheep2.png?raw=true" />
-</p>
-
-If you are curious about the code, here is the list of the modifications and new implementations
-- [MoveStraight](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1436)
-- [Modification in Flee Behavior](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L746)
-- The class [Vehicle.cpp](Buckland_Chapter3-Steering%20Behaviors/Vehicle.cpp) and [Vehicle.h](Buckland_Chapter3-Steering%20Behaviors/Vehicle.h) was modified to add new features that help to implement the "flock of sheep behavior"
-- [Control by the keyboard](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/SteeringBehaviors.cpp#L1819)
-- [TurnDirection](https://github.com/locus0002/c-plus-plus-ai/blob/791f34870d1b75a3a0e7ab2af5a5d545f6d8e3ba/Buckland_Chapter3-Steering%20Behaviors/MovingEntity.h#L156)
-
-You can watch it in action, just hit the [link](https://www.linkedin.com/feed/update/urn:li:activity:6759507835865878529/)
+- [FSM](fsm.md)
+- [Steering behavior hide](steering_behavior_hide.md)
+- [Leader following](leader_following.md)
+- [Flock of Sheep](flock_sheep.md)
